@@ -62,7 +62,7 @@ Get the genomic windows with Probability of being a ROH > 0.9 for the point esti
 Every time you see $IND in the command line, it stands for one of the individuals in the lizard sample.
 
 ```
-zcat $IND.mid.hmmp | grep -v "NA" | awk '$5 < 0.1' > $IND.roh100kb
+zcat $IND.mid.hmmp.gz | grep -v "NA" | awk '$5 < 0.1' > $IND.roh100kb
 ```
 
 Using the command above, we selected ROHs using the probability cutoff of 0.1 of not being a ROH, meaning 0.9 of being a ROH. This saves us a bit of sanity check of the output.  
@@ -90,10 +90,21 @@ bedtools merge -i $IND.roh100kb.sorted > $IND.roh100kb.sorted.merged
 And check the distribution of ROHs by length
 ```
 awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c
+
+Execute the command above for a few individuals from the three different populations of lizards. 
+
 ```
+**How long are the longest ROH in the individual from LC?**  
 
+**And in individuals from the Sicilian wall lizard (DB population)?**  
 
-Execute the command above for a few individuals from the three different populations of lizard.  
+**What is the cumulative length of ROHs larger than 5Mb in the LC01 individual?**
+
+Try the following to answer the question above:
+
+```
+awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' LC01/LC01.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > 5000000  {sum+=$2} END {print sum}'
+```
 
 **Can you recollect the patterns we saw earlier today during the lecture?**
 
@@ -103,106 +114,122 @@ To be executed wihtin the `30_genomic_load_roh/lizard` folder.
 Example for La Canna population:
 
 ```
-for IND in LC*
+for IND in ST*
 do
-cat $IND/$IND.mid.hmmp | grep -v "NA" | awk '$5 < 0.1' | sort -k1,1 -k2,2n > $IND.roh100kb.sorted
-bedtools merge -i $IND.roh100kb.sorted > $IND.roh100kb.sorted.merged
-rm $IND.roh100kb.sorted
+cat $IND/$IND.mid.hmmp | grep -v "NA" | awk '$5 < 0.1' | sort -k1,1 -k2,2n > $IND/$IND.roh100kb.sorted
+bedtools merge -i $IND/$IND.roh100kb.sorted > $IND/$IND.roh100kb.sorted.merged
+rm $IND/$IND.roh100kb.sorted
 done
 ```
 
+## Estimating the inbreeding coefficient F(ROH)
 
-
-The inbreeding coefficient F(ROH) is calculated as the average fraction of the autosomal genome in ROH across individuals of a population. 95% confidence intervals are calculated by jackknife resampling among individuals within each population.
+The inbreeding coefficient F(ROH) is calculated as the average fraction of the autosomal genome in ROH across individuals of a population. 95% confidence intervals can be estimated by jackknife resampling among individuals within each population.
 
 To estimate F(ROH), we first need to get the total length of the genome that has been checked for ROHs. 
 
 (ROHan is expected to be robust to low coverage data (that is the risk of calling a ROH because we do not have data to call a SNP) classifying regions as "Unclassified" if the probability of being ROH/nonROH is not enough to take a position.)
 
+We can use the following command on one of the individuals and assume that the genome length is the same for all individuals.
+
 ```
-sort -k1,1 -k2,2n $IND.mid.hmmp > $IND.mid.hmmp.sorted
-bedtools merge -i $IND.mid.hmmp.sorted | awk '{sum+=$3} END {print sum}'
+zcat LC01/LC01.mid.hmmp.gz | sort -k1,1 -k2,2n > LC01/LC01.mid.hmmp.sorted
+bedtools merge -i LC01/LC01.mid.hmmp.sorted | awk '{sum+=$3} END {print sum}'
 ```
+The result should be 1429961685 bp
 
 Calculate F(ROH) using all ROHs (in our estimate they are equal/longer than 100kb).  
 
-F(ROH) estimates can also be limited to the fraction of ROHs which are longer than a certain length to estimate more recent inbreeding by replacing $size with a length of your interest in the command line below. Replace $total_genome_length with the estimate you obtained before.
-
 ```
-awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > $size {sum+=$2} END {print sum/ $total_genome_length}'
+awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' LC01/LC01.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > 99999 {sum+=$2} END {print sum/1429961685}'
 ```
 
-**Can you make a barplot of the proportion of the genome in ROHs per individual (with the cumulative length of ROHs of different length like those ones we saw today for the lizard or for the  the mammuth)?**
+**What is the F(ROH) for this individual?**
 
+Make a loop to estimate the F(ROH) per population:
 
+```
+for IND in LC*
+do
+echo $IND
+awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND/$IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > 99999 {sum+=$2} END {print sum/1429961685}'
+done
+```
 
-Change `$2 > $size` with `$2 > $size_low && $2 < $size_high`, where $size_low and $size_high are the boundaries of your ROH length bins.
+F(ROH) estimates can also be limited to the fraction of ROHs which are longer than a certain length to estimate the most recent inbreeding event
+
+**Can you check the proportion of the genome in ROHs per population for 99999 < ROHs < 500000,  499999 < ROHs < 5 Mb, and ROHs > 5 Mb?**
 
 For example, to get the proportion of the genome in ROHs longer the 100kb and shorter than 500kb in the population of lizard from La Canna:
 
 ```
-for IND in LC*.roh100kb.sorted.merged
+for IND in LC*
 do
-awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND | cut -f 4 | sort -n | uniq -c | awk '$2 > 99999 && $2 < 500000 {sum+=$2} END {print sum/ 1429961685}'
+awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND/$IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > 99999 && $2 < 500000 {sum+=$2} END {print sum/ 1429961685}'
 done
 ```
 
-**Can you get the average and quantiles of the proportion of the genome in ROHs per population/species?**
+We can use these results to calculate the mean F(ROH) per population.
+
+**What is the mean F(ROH) for the population from ST?**
 
 
+## EXTRA 1: 95% confidence intervals
 
-**Can you get the 95% confidence intervals of F(ROH)_len per population by jackknife resampling (leave-one-out) across individual estimates?**
+It would be better to add 95% confidence intervals for these estimates by jackknife resampling.
 
-
-#Estimating Effective Population Size from ROH (same references as above).
-
-#If the estimated coalescent times for ROH are unbiased, then the average FROH based on ROH with estimated maximum coalescent times less than t generations back in time is an estimator of the inbreeding accumulated in the population from the time of sampling back to t generations ago. Ne is estimated from the following expression of mean expected individual inbreeding as a function of Ne over t generations:
-
-#F(ROH),t = 1-(1-1/2Ne)^t
- 
-#This approach assumes that the probability of inferring an ROH segment due to several smaller homozygous segments is very low. 
-
-#What was the population size when the most recent inbreeding event occurred for our populations? Can you plot it? Do not forget the confidence intervals in your plots!
-
-
-##LOOPS AND SCRIPTS
-
+**What are the 95% confidence intervals of total F(ROH) > 5Mb in ST?**
 
 Make one list per population (use the prefix of each population)
 ```
-for IND in POP1*
+for IND in ST*
 do
-echo $IND >> POP1_List
+echo $IND >> ST_list
 done
 ```
 
-Resampling each population by leaving-one-out approach (100 times here, but 10000 when it matters)
+Resample each population by leaving-one-out approach (100 times here, but 10000 when it matters)
 ```
-echo 'POP1' >> POP1_FROH_sizeX_95perc
+echo 'ST' >> ST_FROH_size5Mb_95perc
 
 for i in {1..100}
 do
-cat POP1_List | shuf | tail -n +2 > POP1_List_shuffled
+cat ST_list | shuf | tail -n +2 > ST_list_shuffled
 
 while read IND
 do
-printf $IND >> F_ROH_sizeX_shuffled
-printf '\t'>> F_ROH_sizeX_shuffled
-awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2> $size {sum+=$2} END {print sum/$total_genome_length}' >> F_ROH_sizeX_shuffled
-done < POP1_List_shuffled
+printf $IND >> F_ROH_size5Mb_shuffled
+printf '\t'>> F_ROH_size5Mb_shuffled
+awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND/$IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2> 5000000 {sum+=$2} END {print sum/1429961685}' >> F_ROH_size5Mb_shuffled
+done < ST_list_shuffled
 
-awk '{sum+=$2} END {print sum/NR}' F_ROH_sizeX_shuffled >> POP1_FROH_sizeX_95perc
-rm F_ROH_sizeX_shuffled
+awk '{sum+=$2} END {print sum/NR}' F_ROH_size5Mb_shuffled >> ST_FROH_size5Mb_95perc
+rm F_ROH_size5Mb_shuffled
 done
 ```
 
-#Get the mean of the distribution
+Get the mean of the distribution
 
-grep -v "POP1" POP1_FROH_sizeX_95perc | awk '{sum += $0} END{print sum/NR}'
+grep -v "ST" ST_FROH_size5Mb_95perc | awk '{sum += $0} END{print sum/NR}'
 
-#Get the 95% confidence intervals as the 0.025 and 0.975 percentiles of the distribution.
+Get the 95% confidence intervals as the 0.025 and 0.975 percentiles of the distribution.
 
-grep -v "POP1" POP1_FROH_sizeX_95perc | sort -n | awk '{all[NR]= $0} END{print all[int(NR*0.025)]}'
+grep -v "ST" ST_FROH_size5Mb_95perc | sort -n | awk '{all[NR]= $0} END{print all[int(NR*0.025)]}'
 
-grep -v "POP1" POP1_FROH_sizeX_95perc | sort -n | awk '{all[NR]= $0} END{print all[int(NR*0.975)]}'
+grep -v "ST" ST_FROH_size5Mb_95perc | sort -n | awk '{all[NR]= $0} END{print all[int(NR*0.975)]}'
 
+## EXTRA 2: Estimating Effective Population Size from ROH (same references as above).
+
+If the estimated coalescent times for ROH are unbiased, then the average FROH based on ROH with estimated maximum coalescent times less than t generations back in time is an estimator of the inbreeding accumulated in the population from the time of sampling back to t generations ago. Ne is estimated from the following expression of mean expected individual inbreeding as a function of Ne over t generations:
+
+F(ROH),t = 1-(1-1/2Ne)^t
+ 
+This approach assumes that the probability of inferring an ROH segment due to several smaller homozygous segments is very low. 
+
+**What was the population size when the most recent inbreeding event occurred for our populations?**  
+
+Do not forget the confidence intervals!
+
+## EXTRA 3 - The invasive fish quiz!
+
+In the folder 
