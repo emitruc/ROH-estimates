@@ -16,9 +16,9 @@ Alternative approaches:
 
 `ROHan --rohmu 1e-5 -t 12 -o $IND --size 100000 --tstv 1.55 --auto ../autosomes.list $FASTA_FILE $BAMfile/$IND.sorted.dedup.bam`
 
-$IND: the IDs of the sample you are running
-$FASTA_FILE: the reference genome sequence
-$BAMfile: the folder containing the BAM files to be analyzed
+$IND: the IDs of the sample you are running  
+$FASTA_FILE: the reference genome sequence  
+$BAMfile: the folder containing the BAM files to be analyzed  
 
 Options to think about:  
 --rohmu : heterozygosity threshold to call a ROH  
