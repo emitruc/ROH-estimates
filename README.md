@@ -232,7 +232,7 @@ Do not forget the confidence intervals!
 
 ## EXTRA 3 - The invasive fish quiz!
 
-In the folder `30_genomic_load_roh/fish` you can find 24 samples which have been already analyzed with ROHan.  
+In the folder `30_genomic_load_roh/fish` you can find 20 samples which have been already analyzed with ROHan.  
 This is an invasive species of which we collected data from the source range and three populations in the invasive range.
 
 We know the invasion happened just a few generations in the past and we expect there could have been quite an intense bottlenck at introduction.
