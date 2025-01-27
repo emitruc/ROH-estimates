@@ -90,10 +90,10 @@ bedtools merge -i $IND.roh100kb.sorted > $IND.roh100kb.sorted.merged
 And check the distribution of ROHs by length
 ```
 awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c
+```
 
 Execute the command above for a few individuals from the three different populations of lizards. 
 
-```
 **How long are the longest ROH in the individual from LC?**  
 
 **And in individuals from the Sicilian wall lizard (DB population)?**  
@@ -106,7 +106,7 @@ Try the following to answer the question above:
 awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' LC01/LC01.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > 5000000  {sum+=$2} END {print sum}'
 ```
 
-**Can you recollect the patterns we saw earlier today during the lecture?**
+**Can you retrieve the patterns we saw earlier today during the lecture?**
 
 Here is a loop to iterate the commands above across individuals.  
 To be executed wihtin the `30_genomic_load_roh/lizard` folder.
