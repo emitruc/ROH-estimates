@@ -35,11 +35,11 @@ Options to think about:
 
 The coalescent times of ROH of a certain length is estimated as _g = 100/(2rL)_, where _g_ is the expected time (in generations) back to the parental common ancestor where the IBD haplotypes forming a ROH coalesce, _r_ is the recombination rate in cM/Mb, and _L_ is the length of the ROH in megabases (lots of references for this, eg. [Kardos et al 2018](doi.org/10.1038/s41559-017-0375-4); [Khan et al. 2021](doi.org/10.1073/pnas.202301811)).
 
-Examples using a (recombination rate of ~5 cM/Mb as in butterflies)  
-ROH(100kb) -> g = 100/(2 x 5 x 0.1) = 100 generations  
-ROH(200kb) -> g = 50 generations ago  
-ROH(500kb) -> g = 20 generations ago  
-#ROH(1Mb) -> g = 10 generations ago  
+Examples using a (recombination rate of ~2.8 cM/Mb as in butterflies)  
+ROH(100kb) -> g = 100/(2 x 5 x 0.1) ~ 180 generations  
+ROH(200kb) -> g ~ 90 generations ago  
+ROH(500kb) -> g ~ 35 generations ago  
+#ROH(1Mb) -> g ~ 18 generations ago  
 
 
 ## Summarizing ROHan output
