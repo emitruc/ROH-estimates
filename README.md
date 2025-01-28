@@ -44,7 +44,7 @@ ROH(500kb) -> g ~ 35 generations ago
 
 ## Summarizing ROHan output
 
-The full output of ROhan from 30 lizard samples (20 _Podarcis raffonei_ from the small islets of La Canna (LC) and Strobolicchio (ST) and 10 _Podarcis wagleriana_ from the main island Sicily (DB)) is provided (one folder per individual) inside the activity folder (**30_genomic_load_roh/lizard**) on the AWS instance. More details about ROHan output files can be found in [ROHan](https://github.com/grenaud/ROHan) github page. 
+The full output of ROhan from 15 lizard samples (10 _Podarcis raffonei_ from the small islets of La Canna (LC) and Strobolicchio (ST) and 5 _Podarcis wagleriana_ from the main island Sicily (DB)) is provided (one folder per individual) inside the activity folder (**30_genomic_load_roh/lizard**) on the AWS instance. More details about ROHan output files can be found in [ROHan](https://github.com/grenaud/ROHan) github page. 
 
 Check the pdf files in one of the individual folder.  
 
@@ -114,9 +114,9 @@ To be executed wihtin the `30_genomic_load_roh/lizard` folder.
 Example for La Canna population:
 
 ```
-for IND in ST*
+for IND in LC*
 do
-cat $IND/$IND.mid.hmmp | grep -v "NA" | awk '$5 < 0.1' | sort -k1,1 -k2,2n > $IND/$IND.roh100kb.sorted
+zcat $IND/$IND.mid.hmmp.gz | grep -v "NA" | awk '$5 < 0.1' | sort -k1,1 -k2,2n > $IND/$IND.roh100kb.sorted
 bedtools merge -i $IND/$IND.roh100kb.sorted > $IND/$IND.roh100kb.sorted.merged
 rm $IND/$IND.roh100kb.sorted
 done
@@ -174,9 +174,32 @@ We can use these results to calculate the mean F(ROH) per population.
 **What is the mean F(ROH) for the population from ST?**
 
 
-## EXTRA 1: 95% confidence intervals
+## EXTRA 1 - The invasive fish quiz!
 
-It would be better to add 95% confidence intervals for these estimates by jackknife resampling.
+In the folder `30_genomic_load_roh/fish` you can find 20 samples which have been already analyzed with ROHan.  
+This is an invasive species of which we collected data from the source range and three populations in the invasive range.
+
+We know the invasion happened just a few generations in the past and we expect there could have been quite an intense bottlenck at introduction.
+
+**Which one is the population from the native range and which are the invasive populations?**
+
+
+## EXTRA 2: Estimating Effective Population Size from ROH (same references as above).
+
+If the estimated coalescent times for ROH are unbiased, then the average FROH based on ROH with estimated maximum coalescent times less than t generations back in time is an estimator of the inbreeding accumulated in the population from the time of sampling back to t generations ago. Ne is estimated from the following expression of mean expected individual inbreeding as a function of Ne over t generations:
+
+F(ROH),t = 1-(1-1/2Ne)^t
+ 
+This approach assumes that the probability of inferring an ROH segment due to several smaller homozygous segments is very low. 
+
+**What was the population size when the most recent inbreeding event occurred for our populations?**  
+
+Do not forget the confidence intervals! See below.
+
+
+## EXTRA 3: 95% confidence intervals
+
+It would be better to add 95% confidence intervals for these estimates by jackknife resampling (we have five individuals per population only, so the following is meant to be just an example).
 
 **What are the 95% confidence intervals of total F(ROH) > 5Mb in ST?**
 
@@ -217,25 +240,4 @@ Get the 95% confidence intervals as the 0.025 and 0.975 percentiles of the distr
 grep -v "ST" ST_FROH_size5Mb_95perc | sort -n | awk '{all[NR]= $0} END{print all[int(NR*0.025)]}'
 
 grep -v "ST" ST_FROH_size5Mb_95perc | sort -n | awk '{all[NR]= $0} END{print all[int(NR*0.975)]}'
-
-## EXTRA 2: Estimating Effective Population Size from ROH (same references as above).
-
-If the estimated coalescent times for ROH are unbiased, then the average FROH based on ROH with estimated maximum coalescent times less than t generations back in time is an estimator of the inbreeding accumulated in the population from the time of sampling back to t generations ago. Ne is estimated from the following expression of mean expected individual inbreeding as a function of Ne over t generations:
-
-F(ROH),t = 1-(1-1/2Ne)^t
- 
-This approach assumes that the probability of inferring an ROH segment due to several smaller homozygous segments is very low. 
-
-**What was the population size when the most recent inbreeding event occurred for our populations?**  
-
-Do not forget the confidence intervals!
-
-## EXTRA 3 - The invasive fish quiz!
-
-In the folder `30_genomic_load_roh/fish` you can find 20 samples which have been already analyzed with ROHan.  
-This is an invasive species of which we collected data from the source range and three populations in the invasive range.
-
-We know the invasion happened just a few generations in the past and we expect there could have been quite an intense bottlenck at introduction.
-
-**Which one is the population from the native range and which are the invasive populations?**
 
