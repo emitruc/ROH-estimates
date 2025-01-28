@@ -171,7 +171,7 @@ done
 
 We can use these results to calculate the mean F(ROH) per population.
 
-**What is the mean F(ROH) for the population from ST?**
+**What is the mean F(ROH) for the population from LC, ST and DB?**
 
 
 ## EXTRA 1 - The invasive fish quiz!
