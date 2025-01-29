@@ -2,6 +2,8 @@
 
 There are different approaches to estimate Runs-Of-Homozygosity (ROHs) from genome sequencing reads mapped to a reference genome (BAM format) or from variant and invariant called sites (GVCF format). In this tutorial for the **Workshop on Population and Speciation Genomics 2025** we will use the output of a software called [ROHan](https://github.com/grenaud/ROHan).
 
+First, log into your AWS instance and move to the folder activity `~/workshop_material/30_genetic_load/ROH`
+
 Take your time to answer the _**questions**_ we left for you along the tutorial. We will then discuss them during the final wrap-up.
 
 ROHan is a Bayesian framework to estimate local rates of heterozygosity, infer runs of homozygosity (ROHs) and compute global rates of heterozygosity. 
@@ -39,7 +41,7 @@ Options to think about:
 
 The coalescent times of ROH of a certain length is estimated as _g = 100/(2rL)_, where _g_ is the expected time (in generations) back to the parental common ancestor where the IBD haplotypes forming a ROH coalesce, _r_ is the recombination rate in cM/Mb, and _L_ is the length of the ROH in megabases (lots of references for this, eg. [Kardos et al 2018](doi.org/10.1038/s41559-017-0375-4); [Khan et al. 2021](doi.org/10.1073/pnas.202301811)).
 
-Examples using a (recombination rate of ~2.8 cM/Mb as in lizard)  
+Examples using a (recombination rate of ~2.8 cM/Mb as in the lizard)  
 ROH(100kb) -> g = 100/(2 x 5 x 0.1) ~ 180 generations  
 ROH(200kb) -> g ~ 90 generations ago  
 ROH(500kb) -> g ~ 35 generations ago  
@@ -48,38 +50,41 @@ ROH(500kb) -> g ~ 35 generations ago
 
 ## Summarizing ROHan output
 
-The full output of ROhan from 15 lizard samples (10 _Podarcis raffonei_ from the small islets of La Canna (LC) and Strobolicchio (ST) and 5 _Podarcis wagleriana_ from the main island Sicily (DB)) is provided (one folder per individual) inside the activity folder (**30_genomic_load_roh/lizard**) on the AWS instance. More details about ROHan output files can be found in [ROHan](https://github.com/grenaud/ROHan) github page. 
+Full output of ROhan from 15 lizard samples (10 _Podarcis raffonei_ from the small islets of La Canna (LC) and Strobolicchio (ST) and 5 _Podarcis wagleriana_ from the main island Sicily (DB)) are provided (one folder per individual) inside the activity folder `30_genetic_load/ROH/lizard`.  
+More details about ROHan output files can be found in [ROHan](https://github.com/grenaud/ROHan) github page. 
 
-Check the pdf files in one of the individual folder.  
+Check the pdf files of one of the individual from each population.  
 
-**What metrics are they showing?**  
+**What are they showing?**  
 
 **Can you find the summary text file of the ROHan analysis for each sample?**   
 
-**What is the minimum ROH length we are recoding?**   
+**What is the minimum ROH length we are recoding in this ROHan run?**   
 
 **How can we get longer ROHs?**  
 
-We will now focus on HMM point estimates (files with extension .mid.hmmp) and use some simple bash command to merge adjacent ROHs and summarize their length distribution.
+We will use HMM midpoint estimates (files with extension .mid.hmmp) to merge adjacent ROHs and summarize their length distribution.
 
-Get the genomic windows with Probability of being a ROH > 0.9 for the point estimates of the HMM (.mid.hmmp).  
+Get the genomic windows with probability of being a ROH > 0.9 for the midpoint estimates of the HMM (.mid.hmmp).  
 Every time you see $IND in the command line, it stands for one of the individuals in the lizard sample.
+
+Move inside one of the individual folders and run the following commands replacing $IND with the folder sample name.
 
 ```
 zcat $IND.mid.hmmp.gz | grep -v "NA" | awk '$5 < 0.1' > $IND.roh100kb
 ```
 
-Using the command above, we selected ROHs using the probability cutoff of 0.1 of not being a ROH, meaning 0.9 of being a ROH. This saves us a bit of sanity check of the output.  
+Using the command above we selected ROHs using the probability cutoff of 0.1 of not being a ROH, meaning 0.9 of being a ROH. This saves us a bit of sanity check of the ROHan output.  
 
 **Do you agree with this 9:1 threshold?**  
 
 **What is the meaning of a Bayes Factor 9:1?**  
 
-(After running the whole pipeline the follows using this cutoff, you can come back, change the cutoff and run the pipeline again to check the effect of a different cutoff on your estimates) 
+(After running the whole pipeline using this cutoff, you can come back, change the cutoff and run the pipeline again to check the effect of a different cutoff on your estimates) 
 
 We ran ROHan using a rather small window size (100kb) but we can merge adjacent small regions into larger ones starting from the output in the hmmp file. There is also another ROHAN output file (extension .hmmrohl) summarizing the results. Have a look a that too if you are interested.
 
-To be sure we are not introducing any bias by merging short ROHs into larger ones, we can go back to ROHan and run it with larger window sizes and compare the results with the current run after merging.
+To be sure we are not introducing any bias by merging short ROHs into larger ones, we can go back to ROHan, run it with larger window sizes, and compare the results with the current run after merging.
 
 Merge adjacent regions with `bedtools merge`. 
 
@@ -96,7 +101,7 @@ And check the distribution of ROHs by length
 awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c
 ```
 
-Execute the command above for a few individuals from the three different populations of lizards. 
+Execute the command above for a couple of individuals from the three different populations of lizards. 
 
 **How long are the longest ROH in the individual from LC?**  
 
@@ -113,7 +118,7 @@ awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' LC01/LC01.roh100kb.sorted.merged |
 **Can you retrieve the patterns we saw earlier today during the lecture?**
 
 Here is a loop to iterate the commands above across individuals.  
-To be executed wihtin the `30_genomic_load_roh/lizard` folder.
+It has to be executed wihtin the `30_genetic_load/ROH/lizard` main folder.
 
 Example for La Canna population:
 
@@ -142,7 +147,7 @@ bedtools merge -i LC01/LC01.mid.hmmp.sorted | awk '{sum+=$3} END {print sum}'
 ```
 The result should be 1429961685 bp
 
-Calculate F(ROH) using all ROHs (in our estimate they are equal/longer than 100kb).  
+Calculate F(ROH) using all ROHs equal/longer than 100kb.  
 
 ```
 awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' LC01/LC01.roh100kb.sorted.merged | cut -f 4 | sort -n | uniq -c | awk '$2 > 99999 {sum+=$2} END {print sum/1429961685}'
@@ -151,6 +156,7 @@ awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' LC01/LC01.roh100kb.sorted.merged |
 **What is the F(ROH) for this individual?**
 
 Make a loop to estimate the F(ROH) per population:
+It has to be executed wihtin the `30_genetic_load/ROH/lizard` main folder.
 
 ```
 for IND in LC*
@@ -160,7 +166,12 @@ awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND/$IND.roh100kb.sorted.merged |
 done
 ```
 
-F(ROH) estimates can also be limited to the fraction of ROHs which are longer than a certain length to estimate the most recent inbreeding event
+We can use these results to calculate the mean F(ROH) per population.
+
+**What is the mean F(ROH) for the population from LC, ST and DB?**
+
+
+F(ROH) estimates can also be limited to the fraction of ROHs which are longer than a certain length to estimate more recent inbreeding events
 
 **Can you check the proportion of the genome in ROHs per population for 99999 < ROHs < 500000,  499999 < ROHs < 5 Mb, and ROHs > 5 Mb?**
 
@@ -173,17 +184,12 @@ awk -F'\t' 'BEGIN {OFS=FS} {print $0, $3-$2}' $IND/$IND.roh100kb.sorted.merged |
 done
 ```
 
-We can use these results to calculate the mean F(ROH) per population.
-
-**What is the mean F(ROH) for the population from LC, ST and DB?**
-
-
 ## EXTRA 1 - The invasive fish quiz!
 
-In the folder `30_genomic_load_roh/fish` you can find 20 samples which have been already analyzed with ROHan.  
-This is an invasive species of which we collected data from the source range and three populations in the invasive range.
+In the folder `30_genetic_load/ROH/fish` you can find 20 samples which have been already analyzed with ROHan.  
+This is an invasive species of which we collected data from one population in the source range and from three populations in the invasive range.
 
-We know the invasion happened just a few generations in the past and we expect there could have been quite an intense bottlenck at introduction.
+We know the invasion happened just a few generations in the past and we expect there could have been quite an intense bottleneck at introduction.
 
 **Which one is the population from the native range and which are the invasive populations?**
 
