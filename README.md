@@ -2,7 +2,7 @@
 
 There are different approaches to estimate Runs-Of-Homozygosity (ROHs) from genome sequencing reads mapped to a reference genome (BAM format) or from variant and invariant called sites (GVCF format). In this tutorial for the **Workshop on Population and Speciation Genomics 2025** we will use the output of a software called [ROHan](https://github.com/grenaud/ROHan).
 
-First, log into your AWS instance and move to the folder activity `~/workshop_material/30_genetic_load/ROH`
+First, log into your AWS instance and move to the folder activity `~/workshop_materials/30_genetic_load/ROH`
 
 Take your time to answer the _**questions**_ we left for you along the tutorial. We will then discuss them during the final wrap-up.
 
