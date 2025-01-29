@@ -16,7 +16,7 @@ Alternative approaches:
 ## How to run ROHan: understanding the options without actually running it 
 (as it takes too long for this lab session)
 
-`ROHan --rohmu 1e-5 -t 12 -o $IND --size 100000 --tstv 1.55 --auto ../autosomes.list $FASTA_FILE $BAMfile/$IND.sorted.dedup.bam`
+`rohan --rohmu 1e-5 -t 12 -o $IND --size 100000 --tstv 1.55 --auto ../autosomes.list $FASTA_FILE $BAMfile/$IND.sorted.dedup.bam`
 
 $IND: the IDs of the sample you are running  
 
