@@ -50,7 +50,7 @@ ROH(500kb) -> g ~ 35 generations ago
 
 ## Summarizing ROHan output
 
-Full output of ROhan from 15 lizard samples (10 _Podarcis raffonei_ from the small islets of La Canna (LC) and Strobolicchio (ST) and 5 _Podarcis wagleriana_ from the main island Sicily (DB)) are provided (one folder per individual) inside the activity folder `30_genetic_load/ROH/lizard`.  
+Full output of ROhan from 15 lizard samples (10 _Podarcis raffonei_ from the small islets of La Canna (LC) and Strombolicchio (ST) and 5 _Podarcis wagleriana_ from the main island Sicily (DB)) are provided (one folder per individual) inside the activity folder `30_genetic_load/ROH/lizard`.  
 More details about ROHan output files can be found in [ROHan](https://github.com/grenaud/ROHan) github page. 
 
 Check the pdf files of one of the individual from each population.  
